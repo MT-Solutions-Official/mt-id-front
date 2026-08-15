@@ -1,0 +1,206 @@
+@import "tailwindcss";
+@import "@fontsource-variable/space-grotesk/index.css";
+@import "@fontsource-variable/geist-mono";
+@import "lenis/dist/lenis.css";
+
+@theme {
+  --font-sans: "Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-bg: #050714;
+  --color-bg-muted: #080b1c;
+  --color-surface: #0c1024;
+  --color-surface-2: #141a38;
+  --color-line: rgb(140 170 255 / 0.14);
+  --color-line-strong: rgb(34 224 255 / 0.38);
+  --color-ink: #eef3ff;
+  --color-ink-muted: #9aa6c8;
+  --color-ink-faint: #6b7698;
+  --color-accent: #22e0ff;
+  --color-accent-2: #8b7cff;
+  --color-accent-3: #ff5ec8;
+  --color-accent-fg: #041018;
+  --color-danger: #ff6b8a;
+  --color-ok: #5dffb3;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: var(--color-bg);
+}
+
+html {
+  color-scheme: dark;
+  overflow-anchor: none;
+  scroll-padding-top: 6rem;
+}
+
+body {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+button:not(:disabled),
+[role="button"],
+a,
+summary {
+  cursor: pointer;
+}
+
+::selection {
+  background: rgb(34 224 255 / 0.28);
+  color: var(--color-ink);
+}
+
+.wordmark {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+}
+
+.display {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.94;
+}
+
+.hairline {
+  background: linear-gradient(90deg, transparent, rgb(34 224 255 / 0.45), rgb(139 124 255 / 0.55), rgb(255 94 200 / 0.4), transparent);
+  height: 1px;
+}
+
+.aurora {
+  background:
+    radial-gradient(900px 520px at 88% -8%, rgb(34 224 255 / 0.22), transparent 55%),
+    radial-gradient(720px 480px at 8% 8%, rgb(139 124 255 / 0.24), transparent 58%),
+    radial-gradient(640px 420px at 72% 108%, rgb(255 94 200 / 0.14), transparent 52%);
+}
+
+.tech-grid {
+  background-image:
+    linear-gradient(rgb(34 224 255 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(34 224 255 / 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 20%, black 15%, transparent 75%);
+}
+
+.panel {
+  border: 1px solid rgb(140 170 255 / 0.14);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.045), rgb(255 255 255 / 0.018));
+  box-shadow: 0 0 0 1px rgb(34 224 255 / 0.04), 0 18px 50px rgb(2 6 24 / 0.45);
+  backdrop-filter: blur(16px);
+}
+
+.landing-ttl {
+  width: 100%;
+  animation: landing-ttl 18s linear infinite;
+}
+
+@keyframes landing-ttl {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 16%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-ttl {
+    animation: none;
+    width: 62%;
+  }
+}
+
+.prose-docs h2 {
+  scroll-margin-top: 6rem;
+}
+
+.google-signin > div,
+.google-signin iframe {
+  width: 100% !important;
+}
+
+.cmdk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(5 7 20 / 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.cmdk-dialog {
+  position: fixed;
+  top: 16%;
+  left: 50%;
+  z-index: 61;
+  width: min(92vw, 560px);
+  transform: translateX(-50%);
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgb(140 170 255 / 0.14);
+  background: #0c1024;
+  box-shadow: 0 24px 80px rgb(2 6 24 / 0.65);
+}
+
+[cmdk-input] {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgb(140 170 255 / 0.14);
+  background: transparent;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: var(--color-ink);
+  outline: none;
+}
+
+[cmdk-input]::placeholder {
+  color: var(--color-ink-faint);
+}
+
+[cmdk-list] {
+  max-height: 360px;
+  overflow: auto;
+  padding: 8px;
+}
+
+[cmdk-empty] {
+  padding: 24px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-ink-muted);
+}
+
+[cmdk-group-heading] {
+  padding: 8px 8px 4px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+[cmdk-item] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+[cmdk-item][data-selected='true'] {
+  background: rgb(255 255 255 / 0.06);
+}
