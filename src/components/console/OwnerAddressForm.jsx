@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { Search } from 'lucide-react'
 import { addresses } from '../../lib/api'
 import { getErrorMessage } from '../../lib/errors'
-import { unmask } from '../../lib/mask'
+import { isZipReady, normalizeZip, zipMask } from '../../lib/mask'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
 import { cn } from '../../lib/cn'
@@ -14,6 +14,39 @@ const COUNTRIES = [
   { id: 'PT', label: 'Portugal' },
   { id: 'ID', label: 'Indonésia' },
 ]
+
+const COUNTRY_UI = {
+  BR: {
+    zipLabel: 'CEP',
+    zipHint: 'Ao completar 8 dígitos, preenche rua, bairro, cidade e UF.',
+    zipIncomplete: 'Informe um CEP com 8 dígitos.',
+    stateLabel: 'UF',
+    neighborhoodLabel: 'Bairro',
+    found: 'Endereço encontrado pelo CEP.',
+  },
+  US: {
+    zipLabel: 'ZIP',
+    zipHint: '5 dígitos. A busca preenche só cidade e estado.',
+    zipIncomplete: 'Informe um ZIP com 5 dígitos.',
+    stateLabel: 'Estado',
+    found: 'Cidade e estado preenchidos. Confira rua e número.',
+  },
+  PT: {
+    zipLabel: 'Código postal',
+    zipHint: 'Formato 1000-001. A busca preenche só cidade e distrito.',
+    zipIncomplete: 'Informe o código postal no formato 1000-001.',
+    stateLabel: 'Distrito',
+    neighborhoodLabel: 'Freguesia',
+    found: 'Cidade e distrito preenchidos. Confira rua e número.',
+  },
+  ID: {
+    zipLabel: 'Kode pos',
+    zipHint: '5 dígitos. A busca preenche kelurahan, kecamatan, cidade e província.',
+    zipIncomplete: 'Informe um kode pos com 5 dígitos.',
+    stateLabel: 'Província',
+    found: 'Localidade preenchida. Confira rua, número, RT e RW.',
+  },
+}
 
 export const EMPTY_ADDRESS = {
   country: 'BR',
@@ -30,10 +63,22 @@ export const EMPTY_ADDRESS = {
   kecamatan: '',
 }
 
+function lookupKey(form) {
+  return `${form.country}:${normalizeZip(form.country, form.zipCode)}`
+}
+
+function canAutoLookup(form) {
+  if (!isZipReady(form.country, form.zipCode)) return false
+  if (form.country === 'BR') return true
+  if (!form.street.trim() || !form.number.trim()) return false
+  if (form.country === 'ID' && (!form.rt.trim() || !form.rw.trim())) return false
+  return true
+}
+
 export function toAddressPayload(form) {
   return {
     country: form.country,
-    zipCode: form.country === 'PT' ? form.zipCode.trim() : unmask('cep', form.zipCode),
+    zipCode: normalizeZip(form.country, form.zipCode),
     street: form.street.trim(),
     number: form.number.trim(),
     complement: form.complement.trim() || undefined,
@@ -48,8 +93,8 @@ export function toAddressPayload(form) {
 }
 
 export function isAddressComplete(form) {
-  const zip = form.country === 'PT' ? form.zipCode.trim() : unmask('cep', form.zipCode)
-  if (!zip || !form.street.trim() || !form.number.trim() || !form.city.trim() || !form.state.trim()) {
+  if (!isZipReady(form.country, form.zipCode)) return false
+  if (!form.street.trim() || !form.number.trim() || !form.city.trim() || !form.state.trim()) {
     return false
   }
   if (form.country === 'ID' && (!form.rt.trim() || !form.rw.trim())) {
@@ -63,6 +108,7 @@ export function OwnerAddressForm({ onSubmit, saving, embedded = false, value, on
   const form = embedded ? value : internal
   const [looking, setLooking] = useState(false)
   const lookedZip = useRef('')
+  const ui = COUNTRY_UI[form.country] || COUNTRY_UI.BR
 
   function setForm(next) {
     if (embedded) onChange(next)
@@ -76,19 +122,17 @@ export function OwnerAddressForm({ onSubmit, saving, embedded = false, value, on
 
   async function lookup(event) {
     event?.preventDefault()
-    const zip = form.country === 'PT' ? form.zipCode.trim() : unmask('cep', form.zipCode)
-    if (!zip) {
-      toast.error('Informe o CEP / ZIP.')
+    const zip = normalizeZip(form.country, form.zipCode)
+    if (!isZipReady(form.country, form.zipCode)) {
+      toast.error(ui.zipIncomplete)
       return
     }
-    if (form.country !== 'BR') {
-      if (!form.street.trim() || !form.number.trim()) {
-        toast.error('Para este país, informe rua e número antes de buscar o CEP.')
-        return
-      }
+    if (form.country !== 'BR' && (!form.street.trim() || !form.number.trim())) {
+      toast.error('Informe rua e número antes de buscar. O código postal não devolve a rua.')
+      return
     }
     if (form.country === 'ID' && (!form.rt.trim() || !form.rw.trim())) {
-      toast.error('Informe RT e RW para buscar o CEP da Indonésia.')
+      toast.error('Informe RT e RW para buscar o kode pos da Indonésia.')
       return
     }
 
@@ -115,10 +159,10 @@ export function OwnerAddressForm({ onSubmit, saving, embedded = false, value, on
         number: data.number || form.number,
         complement: data.complement || form.complement,
       })
-      lookedZip.current = zip
-      toast.success('Endereço encontrado pelo CEP.')
+      lookedZip.current = lookupKey(form)
+      toast.success(ui.found)
     } catch (error) {
-      lookedZip.current = zip
+      lookedZip.current = lookupKey(form)
       toast.error(getErrorMessage(error))
     } finally {
       setLooking(false)
@@ -126,25 +170,60 @@ export function OwnerAddressForm({ onSubmit, saving, embedded = false, value, on
   }
 
   useEffect(() => {
-    if (form.country !== 'BR') return undefined
-    const digits = unmask('cep', form.zipCode)
-    if (digits.length !== 8 || lookedZip.current === digits) return undefined
+    if (!canAutoLookup(form)) return undefined
+    const key = lookupKey(form)
+    if (lookedZip.current === key) return undefined
     const timer = window.setTimeout(() => {
       lookup()
     }, 450)
     return () => window.clearTimeout(timer)
-  }, [form.zipCode, form.country])
+  }, [form.zipCode, form.country, form.street, form.number, form.rt, form.rw])
 
   function submit(event) {
     event.preventDefault()
     if (!isAddressComplete(form)) {
-      toast.error('Busque o CEP e complete rua, número, cidade e estado.')
+      toast.error(
+        form.country === 'BR'
+          ? 'Busque o CEP e complete rua, número, cidade e estado.'
+          : 'Busque o código postal e complete rua, número, cidade e estado.',
+      )
       return
     }
     onSubmit(toAddressPayload(form))
     lookedZip.current = ''
     setForm({ ...EMPTY_ADDRESS, country: form.country })
   }
+
+  const zipField = (
+    <div className="flex items-start gap-2">
+      <Input
+        label={ui.zipLabel}
+        mask={zipMask(form.country)}
+        value={form.zipCode}
+        onChange={(event) => setField('zipCode', event.target.value)}
+        hint={ui.zipHint}
+      />
+      <Button type="button" variant="secondary" size="lg" className="mt-[26px] shrink-0" disabled={looking} onClick={lookup}>
+        <Search className="h-4 w-4" />
+        {looking ? 'Buscando…' : 'Buscar'}
+      </Button>
+    </div>
+  )
+
+  const streetFields = (
+    <>
+      <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
+        <Input
+          label="Rua"
+          value={form.street}
+          onChange={(event) => setField('street', event.target.value)}
+          hint={form.country === 'BR' ? undefined : 'Obrigatória — o código postal não devolve a rua.'}
+        />
+        <Input label="Número" value={form.number} onChange={(event) => setField('number', event.target.value)} />
+      </div>
+      <Input label="Complemento" value={form.complement} onChange={(event) => setField('complement', event.target.value)} />
+    </>
+  )
 
   const fields = (
     <>
@@ -167,43 +246,55 @@ export function OwnerAddressForm({ onSubmit, saving, embedded = false, value, on
         ))}
       </div>
 
-      <div className="flex gap-2">
-        <Input
-          label={form.country === 'BR' ? 'CEP' : 'ZIP / código postal'}
-          mask={form.country === 'BR' ? 'cep' : undefined}
-          value={form.zipCode}
-          onChange={(event) => setField('zipCode', event.target.value)}
-          hint={form.country === 'BR' ? 'Busca automática no ViaCEP ao completar 8 dígitos.' : 'Informe rua e número e clique em buscar.'}
-        />
-        <Button type="button" variant="secondary" className="mt-7 self-end" disabled={looking} onClick={lookup}>
-          <Search className="h-4 w-4" />
-          {looking ? 'Buscando…' : 'Buscar'}
-        </Button>
-      </div>
+      {form.country === 'BR' ? (
+        <>
+          {zipField}
+          {streetFields}
+          <Input
+            label={ui.neighborhoodLabel}
+            value={form.neighborhood}
+            onChange={(event) => setField('neighborhood', event.target.value)}
+          />
+        </>
+      ) : (
+        <>
+          <p className="rounded-xl border border-line bg-bg/40 px-3.5 py-2.5 text-xs leading-5 text-ink-muted">
+            {form.country === 'ID'
+              ? 'O kode pos não devolve a rua. Informe rua, número, RT e RW; a busca preenche kelurahan, kecamatan, cidade e província.'
+              : 'O código postal não devolve a rua. Informe rua e número; a busca preenche só cidade e estado.'}
+          </p>
+          {streetFields}
+          {form.country === 'PT' ? (
+            <Input
+              label={ui.neighborhoodLabel}
+              value={form.neighborhood}
+              onChange={(event) => setField('neighborhood', event.target.value)}
+            />
+          ) : null}
+          {form.country === 'ID' ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input
+                label="RT"
+                value={form.rt}
+                onChange={(event) => setField('rt', event.target.value)}
+                hint="Unidade de vizinhança, obrigatória na busca."
+              />
+              <Input label="RW" value={form.rw} onChange={(event) => setField('rw', event.target.value)} />
+            </div>
+          ) : null}
+          {zipField}
+          {form.country === 'ID' ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input label="Kelurahan" value={form.kelurahan} onChange={(event) => setField('kelurahan', event.target.value)} />
+              <Input label="Kecamatan" value={form.kecamatan} onChange={(event) => setField('kecamatan', event.target.value)} />
+            </div>
+          ) : null}
+        </>
+      )}
 
-      <div className="grid gap-4 sm:grid-cols-[1fr_120px]">
-        <Input label="Rua" value={form.street} onChange={(event) => setField('street', event.target.value)} />
-        <Input label="Número" value={form.number} onChange={(event) => setField('number', event.target.value)} />
-      </div>
-      <Input label="Complemento" value={form.complement} onChange={(event) => setField('complement', event.target.value)} />
-      {form.country === 'BR' || form.country === 'PT' ? (
-        <Input
-          label={form.country === 'PT' ? 'Freguesia' : 'Bairro'}
-          value={form.neighborhood}
-          onChange={(event) => setField('neighborhood', event.target.value)}
-        />
-      ) : null}
-      {form.country === 'ID' ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Input label="RT" value={form.rt} onChange={(event) => setField('rt', event.target.value)} />
-          <Input label="RW" value={form.rw} onChange={(event) => setField('rw', event.target.value)} />
-          <Input label="Kelurahan" value={form.kelurahan} onChange={(event) => setField('kelurahan', event.target.value)} />
-          <Input label="Kecamatan" value={form.kecamatan} onChange={(event) => setField('kecamatan', event.target.value)} />
-        </div>
-      ) : null}
       <div className="grid gap-4 sm:grid-cols-2">
         <Input label="Cidade" value={form.city} onChange={(event) => setField('city', event.target.value)} />
-        <Input label={form.country === 'BR' ? 'UF' : 'Estado'} value={form.state} onChange={(event) => setField('state', event.target.value)} />
+        <Input label={ui.stateLabel} value={form.state} onChange={(event) => setField('state', event.target.value)} />
       </div>
     </>
   )

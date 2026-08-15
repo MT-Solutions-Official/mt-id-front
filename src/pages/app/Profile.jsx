@@ -281,7 +281,7 @@ export function Profile() {
             >
               {addresses.length === 0 ? (
                 <p className="rounded-xl border border-dashed border-line px-4 py-8 text-center text-sm text-ink-muted">
-                  Nenhum endereço ainda. Busque o CEP ao lado e informe o número.
+                  Nenhum endereço ainda. Use o formulário ao lado.
                 </p>
               ) : (
                 <ul className="space-y-3">
@@ -313,9 +313,9 @@ export function Profile() {
               )}
             </Section>
             <Section
-              kicker="ViaCEP"
+              kicker="Código postal"
               title="Adicionar endereço"
-              description="No Brasil, complete o CEP para preencher rua, bairro, cidade e UF. Depois informe o número."
+              description="No Brasil, o CEP preenche rua, bairro, cidade e UF. Nos outros países, informe rua e número; a busca só completa cidade e estado."
             >
               <OwnerAddressForm onSubmit={saveAddress} saving={addressBusy} />
             </Section>

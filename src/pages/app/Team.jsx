@@ -329,7 +329,7 @@ export function Team() {
         description={
           createStep === 1
             ? `Cria o owner no MT ID e já coloca em ${selected.name}.`
-            : 'Busque o CEP e complete o número.'
+            : 'No Brasil, complete o CEP e o número. Fora do Brasil, informe rua e número antes de buscar o código postal.'
         }
         className="max-h-[min(92vh,760px)]"
       >

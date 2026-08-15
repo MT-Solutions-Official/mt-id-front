@@ -21,7 +21,7 @@ export function Signup() {
       subtitle={
         step === 1
           ? 'Conta no MT ID. Depois você entra nas apps como writer ou viewer — o papel é da aplicação, não deste cadastro.'
-          : 'Busque o CEP. No Brasil, rua, bairro, cidade e UF preenchem sozinhos — falta o número.'
+          : 'No Brasil, o CEP preenche rua, bairro, cidade e UF. Fora do Brasil, informe rua e número — o código postal só completa cidade e estado.'
       }
       switchTo={{ prompt: 'Já tem conta?', to: '/login', label: 'Entrar' }}
       progress={<StepIndicator step={step} />}

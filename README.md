@@ -2,26 +2,30 @@
 
 Frontend do provedor de identidade: landing, documentação de integração e dashboard do owner.
 
+A API (Quarkus, porta **8081**) vive no repositório irmão **[mt-id](../mt-id)**. Este repo é só o console.
+
 ## Stack
 
-React + Vite + Tailwind (JavaScript). Porta **3000** — é a origin de plataforma do backend.
+React + Vite + Tailwind (JavaScript). Porta **3000** — é a origin de plataforma do backend (`APP_MT_ID_CORS_ORIGIN`).
 
 ## Desenvolvimento
 
-Na raiz do monorepo, o IdP:
+Suba a API em `mt-id`:
 
 ```bash
-mvn quarkus:dev
+cd ../mt-id
+./mvnw quarkus:dev
 ```
 
 Neste diretório:
 
 ```bash
+cp .env.example .env
 npm install
 npm run dev
 ```
 
-Abra `http://localhost:3000`.
+Abra `http://localhost:3000`. Primeiro owner: `/signup`. Docs: `/docs`.
 
 ## Env
 
@@ -29,25 +33,3 @@ Abra `http://localhost:3000`.
 VITE_API_URL=http://localhost:8081
 VITE_GOOGLE_CLIENT_ID=<Google OAuth client id de owner>
 ```
-
-Crie um `.env` local com base no `.env.example`.
-
-Exemplo para produção (Render):
-
-```
-VITE_API_URL=https://mt-id-api.onrender.com
-```
-
-## Deploy (Vercel)
-
-1. Importar o repositório na Vercel com preset `Vite`.
-2. Definir variáveis de ambiente no projeto:
-
-```
-VITE_API_URL=https://mt-id-api.onrender.com
-VITE_GOOGLE_CLIENT_ID=<Google OAuth client id de owner>
-```
-
-3. Fazer deploy.
-
-Observação: no backend, adicione a origin do front em `allowedOrigins` da aplicação (ex.: `https://seu-projeto.vercel.app`) para o CORS permitir login e chamadas autenticadas.

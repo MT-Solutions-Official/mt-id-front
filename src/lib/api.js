@@ -109,7 +109,7 @@ export const owners = {
 
 export const addresses = {
   lookup: (country, zipCode, params = {}) =>
-    api.get(`/api/v1/addresses/${String(country).toLowerCase()}/${zipCode}`, { params }),
+    api.get(`/api/v1/addresses/${String(country).toLowerCase()}/${encodeURIComponent(zipCode)}`, { params }),
 }
 
 export const apps = {

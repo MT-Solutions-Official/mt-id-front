@@ -118,7 +118,7 @@ export function OwnerCreateForm({
   async function onCreate(event) {
     event.preventDefault()
     if (!isAddressComplete(form.address)) {
-      toast.error('Informe o endereço: busque o CEP e complete rua, número, cidade e estado.')
+      toast.error('Informe o endereço: busque o código postal e complete rua, número, cidade e estado.')
       return
     }
     setLoading(true)
