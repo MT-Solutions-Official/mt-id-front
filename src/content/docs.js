@@ -1,3 +1,5 @@
+import { API_URL } from '../lib/env'
+
 export const docsNav = [
   {
     title: 'Começar',
@@ -39,7 +41,7 @@ export const docsFlat = docsNav.flatMap((group) =>
   })),
 )
 
-const BASE = 'http://localhost:8081'
+const BASE = API_URL
 
 export const docs = {
   overview: {

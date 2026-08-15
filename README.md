@@ -29,3 +29,11 @@ Abra `http://localhost:3000`.
 VITE_API_URL=http://localhost:8081
 VITE_GOOGLE_CLIENT_ID=<Google OAuth client id de owner>
 ```
+
+Crie um `.env` local com base no `.env.example`.
+
+Exemplo para produção (Render):
+
+```
+VITE_API_URL=https://mt-id-api.onrender.com
+```

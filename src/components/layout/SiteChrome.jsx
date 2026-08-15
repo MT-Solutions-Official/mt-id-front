@@ -6,8 +6,7 @@ import { Logo } from '../Logo'
 import { Button } from '../ui/Button'
 import { useAuth } from '../../lib/auth'
 import { cn } from '../../lib/cn'
-
-const API_HOST = (import.meta.env.VITE_API_URL || 'http://localhost:8081').replace(/^https?:\/\//, '')
+import { API_HOST } from '../../lib/env'
 
 const nav = [
   { to: '/', label: 'Produto', end: true },

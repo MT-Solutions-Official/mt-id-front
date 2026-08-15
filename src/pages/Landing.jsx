@@ -19,6 +19,7 @@ import { CodeBlock } from '../components/ui/CodeBlock'
 import { SiteFooter, SiteHeader } from '../components/layout/SiteChrome'
 import { cn } from '../lib/cn'
 import { useAuth } from '../lib/auth'
+import { API_URL } from '../lib/env'
 
 const ease = [0.22, 1, 0.36, 1]
 
@@ -132,7 +133,7 @@ const guarantees = [
 ]
 
 const claims = [
-  ['iss', 'http://localhost:8081'],
+  ['iss', API_URL],
   ['sub', '64f1c2a9e8b17d001234abcd'],
   ['groups', 'USER'],
   ['appId', 'acme-prod'],

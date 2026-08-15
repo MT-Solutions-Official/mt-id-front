@@ -1,4 +1,5 @@
 import { docs, docsFlat } from '../content/docs'
+import { API_URL } from './env'
 
 function escapeCell(value) {
   return String(value ?? '')
@@ -88,9 +89,9 @@ const FULL_PREAMBLE = `# MT ID — documentação da API
 
 Contrato do identity provider MT ID. Use isto como fonte da verdade para integrar.
 
-- Base URL (dev): http://localhost:8081
-- Swagger: http://localhost:8081/swagger-ui
-- OpenAPI: http://localhost:8081/q/openapi
+- Base URL: ${API_URL}
+- Swagger: ${API_URL}/swagger-ui
+- OpenAPI: ${API_URL}/q/openapi
 
 Writer/viewer de owner é por aplicação (\`client-application.owners[].role\`). O JWT do owner é só \`OWNER\`.
 `

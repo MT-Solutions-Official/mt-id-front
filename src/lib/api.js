@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { getErrorMessage } from './errors'
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081'
+import { API_URL } from './env'
 
 export const ACCESS_KEY = 'mtid.accessToken'
 export const REFRESH_KEY = 'mtid.refreshToken'

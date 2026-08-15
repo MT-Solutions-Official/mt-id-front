@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { Globe, KeyRound, ShieldCheck } from 'lucide-react'
 import { Logo } from '../Logo'
 import { cn } from '../../lib/cn'
+import { API_HOST } from '../../lib/env'
 
 const points = [
   { icon: ShieldCheck, text: 'Isolamento por appId, origins e papéis' },
@@ -30,7 +31,7 @@ export function AuthLayout({ title, subtitle, switchTo, wide = false, progress, 
             ))}
           </ul>
         </div>
-        <p className="relative font-mono text-[11px] text-ink-faint">MT ID · localhost:8081</p>
+        <p className="relative font-mono text-[11px] text-ink-faint">MT ID · {API_HOST}</p>
       </aside>
 
       <main className="relative flex min-h-screen flex-col bg-bg-muted">
