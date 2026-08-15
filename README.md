@@ -37,3 +37,17 @@ Exemplo para produção (Render):
 ```
 VITE_API_URL=https://mt-id-api.onrender.com
 ```
+
+## Deploy (Vercel)
+
+1. Importar o repositório na Vercel com preset `Vite`.
+2. Definir variáveis de ambiente no projeto:
+
+```
+VITE_API_URL=https://mt-id-api.onrender.com
+VITE_GOOGLE_CLIENT_ID=<Google OAuth client id de owner>
+```
+
+3. Fazer deploy.
+
+Observação: no backend, adicione a origin do front em `allowedOrigins` da aplicação (ex.: `https://seu-projeto.vercel.app`) para o CORS permitir login e chamadas autenticadas.
